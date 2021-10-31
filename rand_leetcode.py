@@ -2,11 +2,9 @@
 Criteria:
 1. Question is within the Easy/Medium band - "difficulty {level}"
 2. Number of accepted answers must be over 50,000 - "total_acs"
-3. TODO: Free questions only
 """
 import random
 import json
-import os
 from enum import Enum
 
 import requests
@@ -109,10 +107,10 @@ class Question:
 
 class DiscordBot:
     """class that will act as a discord bot. can send messages to a channel"""
-    def __init__(self, apikey) -> None:
+    def __init__(self, apikey: str) -> None:
         self.apikey = apikey
         self.session = requests.Session()
-        self.session.headers = {"Authorization": apikey}
+        self.session.headers = {"Authorization": "Bot" + apikey}
 
     def post_single_message(self, message: str, channel_id: str):
         """create a post http request and send the message out
@@ -136,9 +134,7 @@ def pretty_print_dict(dictionary):
 
 
 if __name__ == "__main__":
-
-    # os.system("clear")
-    apikey = "Bot ODk5NzY3MjY1MDQ0NjA3MDg3.YW3jkA.PPIeCP0QtBQ8jI1cGLMHXRPdoIM"
+    apikey = "API_KEY"
     max_num_tries = 5
 
     res = requests.get("https://leetcode.com/api/problems/algorithms/").json()
