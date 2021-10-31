@@ -73,9 +73,23 @@ class Question:
             return False
         return True
 
+    def validate_paid_tier(self, paid=False):
+        """
+        Takes in a bool on if we want paid tier included or not
+        
+        Args:
+            paid: bool - if we accept paid or not
+        Returns:
+            bool - True/False
+        """
+        if not paid and self.paid_only:
+            return False
+        return True
+
     def meets_criteria(self,
                        max_difficulty: int = 2,
-                       min_accepts: int = 50000):
+                       min_accepts: int = 50000,
+                       paid: bool = False):
         """
         Returns true if all our criteria for a question is met
 
@@ -84,11 +98,32 @@ class Question:
                 EASY, 3 being HARD
             min_accepts: int - the minimum number of acceptances
                 this question needs to pass the criteria 
+            paid: bool - if we accept paid or not
         """
         if self.validate_difficulty(max_difficulty) \
-            and self.validate_acceptance_rate(min_accepts):
+            and self.validate_acceptance_rate(min_accepts) \
+            and self.validate_paid_tier(paid):
             return True
         return False
+
+
+class DiscordBot:
+    """class that will act as a discord bot. can send messages to a channel"""
+    def __init__(self, apikey) -> None:
+        self.apikey = apikey
+        self.session = requests.Session()
+        self.session.headers = {"Authorization": apikey}
+
+    def post_single_message(self, message: str, channel_id: str):
+        """create a post http request and send the message out
+        
+        Args:
+            message: str - the message you want to send
+            channel_id: str - id for the channel you are looking to post a message to
+        """
+        discord_api_url = "https://discordapp.com/api/channels/" + channel_id + "/messages"
+        payload = {"content": message}
+        self.session.post(discord_api_url, data=payload)
 
 
 def pretty_print_dict(dictionary):
@@ -103,23 +138,29 @@ def pretty_print_dict(dictionary):
 if __name__ == "__main__":
 
     # os.system("clear")
+    apikey = "Bot ODk5NzY3MjY1MDQ0NjA3MDg3.YW3jkA.PPIeCP0QtBQ8jI1cGLMHXRPdoIM"
+    max_num_tries = 5
 
-    print("Collecting LeetCode questions...")
     res = requests.get("https://leetcode.com/api/problems/algorithms/").json()
 
     questions = res["stat_status_pairs"]
-    num_tries = 0
 
-    while num_tries < 10:
+    my_discord_bot = DiscordBot(apikey=apikey)
+
+    num_tries = 0
+    while num_tries < max_num_tries:
         question_number = random.randint(0, len(questions))
         question = Question.from_dict(questions[question_number])
 
         if question.meets_criteria():
             question_url = "https://leetcode.com/problems/" + question.title
-            print(f"Click to open question: {question_url}")
+            my_discord_bot.post_single_message(
+                message=f"Question of the day: {question_url}",
+                channel_id="899768949720371206")
             break
-
         num_tries += 1
 
-    if num_tries == 10:
-        print("You were really lucky this time. No LeetCode today!")
+    if num_tries == max_num_tries:
+        my_discord_bot.post_single_message(
+            message="You were really lucky. No LeetCode today!",
+            channel_id="899768949720371206")
