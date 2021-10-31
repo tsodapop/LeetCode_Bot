@@ -2,6 +2,7 @@
 Criteria:
 1. Question is within the Easy/Medium band - "difficulty {level}"
 2. Number of accepted answers must be over 50,000 - "total_acs"
+3. Free questions only
 """
 import random
 import json
