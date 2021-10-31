@@ -106,27 +106,20 @@ class Question:
         return False
 
 
-class DiscordBot:
-    """class that will act as a discord bot. can send messages to a channel"""
-    def __init__(self, apikey: str) -> None:
-        self.apikey = apikey
-        self.session = requests.Session()
-        self.session.headers = {"Authorization": "Bot" + apikey}
-
-    def post_single_message(self, message: str, channel_id: str):
-        """create a post http request and send the message out
-        
-        Args:
-            message: str - the message you want to send
-            channel_id: str - id for the channel you are looking to post a message to
-        """
-        discord_api_url = "https://discordapp.com/api/channels/" + channel_id + "/messages"
-        payload = {"content": message}
-        self.session.post(discord_api_url, data=payload)
-
-
-def post_message():
+def post_lc_bot_message(message: str):
+    """sends a mesasge to the specific channel. because we know
+    we are only sending this to one channel, we can hardcode the
+    webhook url. otherwise, we would pass this in as a param
+    """
     webhook_url = "https://discord.com/api/webhooks/904421996748754954/qLpuwN581fC8bTzUy496teJ7J_e5NE4DJ6MYXHGXk-dxWboqgVcYCppxXmK6yvpZxVlV"
+    data = {"content": message}
+
+    response = requests.post(webhook_url, json=data)
+
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(f"error in sending {message}: {err}")
 
 
 def pretty_print_dict(dictionary):
@@ -139,14 +132,11 @@ def pretty_print_dict(dictionary):
 
 
 if __name__ == "__main__":
-    apikey = "API_KEY"
     max_num_tries = 5
 
     res = requests.get("https://leetcode.com/api/problems/algorithms/").json()
 
     questions = res["stat_status_pairs"]
-
-    my_discord_bot = DiscordBot(apikey=apikey)
 
     num_tries = 0
     while num_tries < max_num_tries:
@@ -155,13 +145,10 @@ if __name__ == "__main__":
 
         if question.meets_criteria():
             question_url = "https://leetcode.com/problems/" + question.title
-            my_discord_bot.post_single_message(
-                message=f"Question of the day: {question_url}",
-                channel_id="899768949720371206")
+            post_lc_bot_message(message=f"Question of the day: {question_url}")
             break
         num_tries += 1
 
     if num_tries == max_num_tries:
-        my_discord_bot.post_single_message(
-            message="You were really lucky. No LeetCode today!",
-            channel_id="899768949720371206")
+        post_lc_bot_message(
+            message="You were really lucky. No LeetCode today!")
