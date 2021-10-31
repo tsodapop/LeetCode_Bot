@@ -125,6 +125,10 @@ class DiscordBot:
         self.session.post(discord_api_url, data=payload)
 
 
+def post_message():
+    webhook_url = "https://discord.com/api/webhooks/904421996748754954/qLpuwN581fC8bTzUy496teJ7J_e5NE4DJ6MYXHGXk-dxWboqgVcYCppxXmK6yvpZxVlV"
+
+
 def pretty_print_dict(dictionary):
     """Prints the dict in an easier to digest format
 
